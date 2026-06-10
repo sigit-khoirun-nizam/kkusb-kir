@@ -1,0 +1,409 @@
+# SISTEM MONITORING KIR KENDARAAN
+
+Sistem Monitoring KIR Kendaraan adalah aplikasi berbasis Laravel 12
+untuk melakukan pengelolaan masa berlaku KIR kendaraan, reminder,
+periode pengajuan KIR, biaya, dokumen PR/SPK, dan histori KIR.
+
+Sistem dibuat untuk menggantikan monitoring manual menggunakan Excel.
+
+
+---
+
+# Tech Stack
+
+- PHP >= 8.2
+- Laravel Framework 12.x
+- MySQL / MariaDB
+- Laravel Excel (maatwebsite/excel)
+- Bootstrap / Tailwind (optional)
+- Inertia React (optional)
+
+
+---
+
+# Package
+
+```json
+"require": {
+    "php": "^8.2",
+    "laravel/framework": "^12.0",
+    "laravel/tinker": "^2.10.1",
+    "maatwebsite/excel": "^3.1"
+}
+```
+
+---
+
+# Fitur Sistem
+
+
+## 1. Dashboard Monitoring
+
+Dashboard menampilkan:
+
+- Total kendaraan
+- KIR aktif
+- KIR expired
+- KIR bulan berjalan
+- KIR 3 bulan kedepan
+- Total biaya KIR
+
+
+Status warna:
+
+🟢 Aman
+
+> Masa berlaku masih panjang
+
+
+🟡 Warning
+
+> Expired <= 60 hari
+
+
+🔴 Urgent
+
+> Expired <= 30 hari
+
+
+---
+
+# 2. Master Kendaraan
+
+
+Data kendaraan:
+
+- Nomor pintu
+- Nomor polisi
+- Jenis kendaraan
+- Deskripsi kendaraan
+- Masa berlaku KIR
+
+
+Contoh:
+
+| Nomor Pintu | Nopol | Jenis |
+|-|-|-|
+| BL268 | B9033JFU | TRUK |
+| TM017 | B9075NIN | MIXER |
+
+
+---
+
+# 3. Import Excel KIR
+
+
+Import data Excel existing.
+
+
+Format:
+
+
+| Kolom Excel | Database |
+|-|-|
+| Nomor Pintu | nomor_pintu |
+| Nopol | nopol |
+| Jenis | jenis |
+| Deskripsi | deskripsi |
+| Exp KIR | exp_kir |
+| Biaya | biaya |
+| Jasa | jasa |
+| Total | total |
+| No PR | no_pr |
+| No SPK | no_spk |
+
+
+Support:
+
+- Upload Excel .xlsx
+- Validasi data
+- Update data existing
+
+
+---
+
+# 4. Periode KIR Otomatis
+
+
+Sistem otomatis menentukan jadwal KIR berikutnya.
+
+
+Rumus:
+
+
+EXP KIR + 6 BULAN
+
+
+Contoh:
+
+
+| Expired | Jadwal KIR |
+|-|-|
+| September 2026 | Maret 2027 |
+| Oktober 2026 | April 2027 |
+| November 2026 | Mei 2027 |
+| Desember 2026 | Juni 2027 |
+| Januari 2027 | Juli 2027 |
+| Februari 2027 | Agustus 2027 |
+
+
+---
+
+# 5. Reminder KIR
+
+
+Sistem memberikan alert:
+
+
+H-60
+
+```
+Kendaraan mulai masuk periode KIR
+```
+
+H-30
+
+```
+Segera proses KIR
+```
+
+
+---
+
+# 6. History KIR
+
+
+Menyimpan semua proses KIR kendaraan.
+
+
+Contoh:
+
+
+BL268
+
+2025
+- Exp KIR lama
+- Biaya
+- No PR
+- No SPK
+
+
+2026
+- Exp KIR baru
+- Biaya
+- No PR
+- No SPK
+
+
+---
+
+# Database Design
+
+
+## Table : kendaraan
+
+
+```sql
+CREATE TABLE kendaraan (
+
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+nomor_pintu VARCHAR(50),
+
+nopol VARCHAR(50),
+
+jenis VARCHAR(50),
+
+deskripsi VARCHAR(150),
+
+exp_kir DATE,
+
+biaya DECIMAL(15,2),
+
+jasa DECIMAL(15,2),
+
+total DECIMAL(15,2),
+
+no_pr VARCHAR(100),
+
+no_spk VARCHAR(100),
+
+
+created_at TIMESTAMP NULL,
+
+updated_at TIMESTAMP NULL
+
+);
+```
+
+
+
+---
+
+# Table : kir_histories
+
+
+Menyimpan histori perubahan KIR.
+
+
+
+```sql
+CREATE TABLE kir_histories (
+
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+
+kendaraan_id BIGINT,
+
+
+exp_kir_lama DATE,
+
+exp_kir_baru DATE,
+
+
+biaya DECIMAL(15,2),
+
+jasa DECIMAL(15,2),
+
+total DECIMAL(15,2),
+
+
+no_pr VARCHAR(100),
+
+no_spk VARCHAR(100),
+
+
+tanggal_proses DATE,
+
+
+created_at TIMESTAMP NULL,
+
+updated_at TIMESTAMP NULL,
+
+
+FOREIGN KEY(kendaraan_id)
+
+REFERENCES kendaraan(id)
+
+);
+```
+
+
+---
+
+# Table : kir_documents
+
+
+Upload dokumen pendukung.
+
+
+Contoh:
+
+- Scan KIR
+- Invoice
+- Dokumen kendaraan
+
+
+
+```sql
+CREATE TABLE kir_documents (
+
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+kendaraan_id BIGINT,
+
+
+nama_file VARCHAR(255),
+
+path VARCHAR(255),
+
+
+created_at TIMESTAMP NULL,
+
+updated_at TIMESTAMP NULL,
+
+
+FOREIGN KEY(kendaraan_id)
+
+REFERENCES kendaraan(id)
+
+);
+```
+
+
+---
+
+# Struktur Menu
+
+
+```
+Dashboard
+
+
+Master Data
+ └── Kendaraan
+
+
+KIR
+ ├── Monitoring KIR
+ ├── Proses KIR
+ ├── History KIR
+ └── Import Excel
+
+
+Report
+ ├── Export Excel
+ └── Rekap Biaya
+```
+
+
+---
+
+# Command Install
+
+
+Install package:
+
+```bash
+composer install
+```
+
+
+Generate key:
+
+```bash
+php artisan key:generate
+```
+
+
+Migration:
+
+```bash
+php artisan migrate
+```
+
+
+Run:
+
+```bash
+php artisan serve
+```
+
+
+---
+
+# Future Development
+
+
+- Reminder Email
+- Reminder Whatsapp
+- Approval KIR
+- Dashboard Chart
+- Multi User
+- Role Permission
+- Export PDF
+
+
+---
+
+Version : 1.0.0
