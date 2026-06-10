@@ -8,7 +8,7 @@ use App\Models\KirHistory;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $totalVehicles = Kendaraan::count();
         $activeKIR = Kendaraan::where('exp_kir', '>=', now()->startOfDay())->count();
@@ -23,9 +23,20 @@ class DashboardController extends Controller
 
         $totalCost = KirHistory::sum('total');
 
-        $activeAlerts = Kendaraan::where('exp_kir', '<=', now()->addDays(60))
-            ->orderBy('exp_kir', 'asc')
-            ->paginate(5);
+        $activeAlertsQuery = Kendaraan::where('exp_kir', '<=', now()->addDays(60));
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $activeAlertsQuery->where(function($q) use ($search) {
+                $q->where('nopol', 'like', "%{$search}%")
+                  ->orWhere('nomor_pintu', 'like', "%{$search}%")
+                  ->orWhere('jenis', 'like', "%{$search}%");
+            });
+        }
+
+        $activeAlerts = $activeAlertsQuery->orderBy('exp_kir', 'asc')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('pages.dashboard.kir', [
             'title' => 'KIR Dashboard',

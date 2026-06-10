@@ -46,20 +46,38 @@
     <!-- Alert KIR Records -->
     <div class="col-span-12">
       <div class="rounded-xl border border-red-200 bg-white shadow-sm dark:border-red-900/30 dark:bg-white/[0.03]">
-        <div class="flex items-center justify-between border-b border-red-100 px-6 py-4 dark:border-red-900/20">
-          <div class="flex items-center gap-2">
+        <div class="flex flex-col gap-4 border-b border-red-100 px-6 py-4 dark:border-red-900/20 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-3">
             <span class="flex h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
             <h3 class="text-lg font-semibold text-red-800 dark:text-red-400">Peringatan Jatuh Tempo KIR</h3>
+            <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/30 dark:text-red-400">
+              {{ $activeAlerts->total() }} Kendaraan Perlu Tindakan
+            </span>
           </div>
-          <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            {{ $activeAlerts->total() }} Kendaraan Perlu Tindakan
-          </span>
+          
+          <!-- Search Form -->
+          <form action="{{ route('dashboard') }}" method="GET" class="flex items-center">
+            <div class="relative">
+              <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kendaraan..."
+                class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2 pl-9 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 sm:w-60">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            @if(request('search'))
+              <a href="{{ route('dashboard') }}" class="ml-2 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                Clear
+              </a>
+            @endif
+          </form>
         </div>
         <div class="p-6">
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
                 <tr class="border-b border-gray-200 text-left dark:border-gray-800">
+                  <th class="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">No</th>
                   <th class="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">No. Pintu</th>
                   <th class="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">No. Polisi</th>
                   <th class="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">Jenis</th>
@@ -75,6 +93,9 @@
                     $daysRemaining = now()->startOfDay()->diffInDays($alert->exp_kir, false);
                   @endphp
                   <tr class="border-b border-gray-200 last:border-0 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-white/[0.01]">
+                    <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-white/90">
+                      {{ $loop->iteration + ($activeAlerts->currentPage() - 1) * $activeAlerts->perPage() }}
+                    </td>
                     <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{{ $alert->nomor_pintu ?? '-' }}</td>
                     <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-white/90">{{ $alert->nopol ?? '-' }}</td>
                     <td class="px-4 py-4 text-sm text-gray-800 dark:text-white/90">{{ $alert->jenis ?? '-' }}</td>
@@ -116,7 +137,7 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                       Semua KIR kendaraan dalam status aman (tidak ada alert).
                     </td>
                   </tr>
