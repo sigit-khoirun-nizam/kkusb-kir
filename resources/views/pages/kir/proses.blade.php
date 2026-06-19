@@ -3,9 +3,29 @@
 @section('content')
   <div class="space-y-6 max-w-4xl mx-auto">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">{{ $title }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Pilih kendaraan di bawah ini untuk memproses perpanjangan/pengajuan KIR baru</p>
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">{{ $title }}</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Pilih kendaraan di bawah ini untuk memproses perpanjangan/pengajuan KIR baru</p>
+      </div>
+      <div>
+        <!-- Search Form -->
+        <form action="{{ route('kir.proses') }}" method="GET" class="flex items-center">
+          <div class="relative">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kendaraan..."
+              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pl-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 md:w-64">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          @if(request('search'))
+            <a href="{{ route('kir.proses') }}" class="ml-2 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+              Clear
+            </a>
+          @endif
+        </form>
+      </div>
     </div>
 
     <!-- Vehicles List Grid -->

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KirController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\AdditionalFeeTypeController;
 
 // Authentication routes
 Route::get('/signin', [AuthController::class, 'showLogin'])->name('signin');
@@ -27,6 +28,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('kendaraan/import', [KendaraanController::class, 'import'])->name('kendaraan.import');
     Route::resource('kendaraan', KendaraanController::class);
 
+    // Master Data Biaya Tambahan
+    Route::patch('biaya-tambahan/{additional_fee_type}/toggle', [AdditionalFeeTypeController::class, 'toggleStatus'])->name('biaya-tambahan.toggle');
+    Route::resource('biaya-tambahan', AdditionalFeeTypeController::class);
+
     // KIR routes
     Route::prefix('kir')->name('kir.')->group(function () {
         Route::get('/monitoring', [KirController::class, 'monitoring'])->name('monitoring');
@@ -34,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/proses/{kendaraan}', [KirController::class, 'showProsesForm'])->name('proses-form');
         Route::post('/proses/{kendaraan}', [KirController::class, 'prosesStore'])->name('proses-store');
         Route::get('/history', [KirController::class, 'history'])->name('history');
+        Route::get('/history/{history}/print', [KirController::class, 'printHistory'])->name('history.print');
         Route::get('/import', [KirController::class, 'importForm'])->name('import-form');
         Route::post('/import', [KirController::class, 'import'])->name('import');
     });

@@ -27,7 +27,7 @@
         </form>
         
         <!-- Action Buttons -->
-        <a href="{{ route('kendaraan.template') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-850 dark:text-gray-300 dark:hover:bg-gray-800">
+        <a href="{{ route('kendaraan.template') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-800">
           <svg class="mr-2 text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -89,12 +89,20 @@
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-2">
-                    <a href="{{ route('kendaraan.show', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-500 hover:bg-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400">
+                    <a href="{{ route('kendaraan.show', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-500 hover:bg-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400" title="Detail">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="currentColor"/>
                       </svg>
                     </a>
-                    <a href="{{ route('kendaraan.edit', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-yellow-500/10 p-2 text-yellow-500 hover:bg-yellow-500/20 dark:bg-yellow-500/20 dark:text-yellow-400">
+                    @if($kendaraan->documents->isNotEmpty())
+                      @php $latestDoc = $kendaraan->documents->sortByDesc('created_at')->first(); @endphp
+                      <a href="{{ Storage::url($latestDoc->path) }}" target="_blank" class="inline-flex items-center justify-center rounded-lg bg-red-500/10 p-2 text-red-500 hover:bg-red-500/20 dark:bg-red-500/20 dark:text-red-400" title="Buka PDF Scan">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                      </a>
+                    @endif
+                    <a href="{{ route('kendaraan.edit', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-yellow-500/10 p-2 text-yellow-500 hover:bg-yellow-500/20 dark:bg-yellow-500/20 dark:text-yellow-400" title="Edit">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
                       </svg>

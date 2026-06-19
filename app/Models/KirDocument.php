@@ -14,6 +14,7 @@ class KirDocument extends Model
 
     protected $fillable = [
         'kendaraan_id',
+        'kir_history_id',
         'nama_file',
         'path',
     ];
@@ -21,5 +22,10 @@ class KirDocument extends Model
     public function kendaraan(): BelongsTo
     {
         return $this->belongsTo(Kendaraan::class, 'kendaraan_id');
+    }
+
+    public function history(): BelongsTo
+    {
+        return $this->belongsTo(KirHistory::class, 'kir_history_id');
     }
 }

@@ -44,12 +44,13 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-gray-200 text-left dark:border-gray-800">
-              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">Bulan</th>
-              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">Jumlah Kendaraan</th>
-              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">Biaya Resmi</th>
-              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">Jasa Pengurusan</th>
-              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">Total Pengeluaran</th>
+            <tr class="border-b border-gray-200 dark:border-gray-800">
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-left">Bulan</th>
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-center">Jumlah Kendaraan</th>
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Biaya Resmi</th>
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Jasa Pengurusan</th>
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Biaya Tambahan</th>
+              <th class="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Total Pengeluaran</th>
             </tr>
           </thead>
           <tbody>
@@ -59,32 +60,69 @@
                 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
                 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
               ];
+              $grandTotalKendaraan = 0;
+              $grandTotalBiaya = 0;
+              $grandTotalJasa = 0;
+              $grandTotalTambahan = 0;
+              $grandTotalPengeluaran = 0;
             @endphp
             @forelse($rekap as $row)
-              <tr class="border-b border-gray-200 last:border-0 dark:border-gray-800">
-                <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-white/90">
+              @php
+                $grandTotalKendaraan += $row->total_kendaraan;
+                $grandTotalBiaya += $row->total_biaya;
+                $grandTotalJasa += $row->total_jasa;
+                $grandTotalTambahan += $row->total_tambahan;
+                $grandTotalPengeluaran += $row->total_pengeluaran;
+              @endphp
+              <tr class="border-b border-gray-200 last:border-0 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-white/[0.01]">
+                <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-white/90 text-left">
                   {{ $monthsList[$row->bulan] ?? '-' }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90">
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-center">
                   {{ $row->total_kendaraan }} Unit
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90">
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
                   Rp {{ number_format($row->total_biaya, 0, ',', '.') }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90">
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
                   Rp {{ number_format($row->total_jasa, 0, ',', '.') }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 font-semibold">
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
+                  Rp {{ number_format($row->total_tambahan, 0, ',', '.') }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 font-semibold text-right">
                   Rp {{ number_format($row->total_pengeluaran, 0, ',', '.') }}
                 </td>
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                   Tidak ada transaksi biaya KIR untuk tahun {{ $year }}.
                 </td>
               </tr>
             @endforelse
+            @if($rekap->isNotEmpty())
+              <tr class="font-semibold bg-gray-50/50 dark:bg-white/[0.01] border-t-2 border-gray-200 dark:border-gray-800">
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-left">
+                  Total
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-center">
+                  {{ $grandTotalKendaraan }} Unit
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
+                  Rp {{ number_format($grandTotalBiaya, 0, ',', '.') }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
+                  Rp {{ number_format($grandTotalJasa, 0, ',', '.') }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-800 dark:text-white/90 text-right">
+                  Rp {{ number_format($grandTotalTambahan, 0, ',', '.') }}
+                </td>
+                <td class="px-6 py-4 text-sm text-brand-500 dark:text-brand-400 text-right font-bold">
+                  Rp {{ number_format($grandTotalPengeluaran, 0, ',', '.') }}
+                </td>
+              </tr>
+            @endif
           </tbody>
         </table>
       </div>

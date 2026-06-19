@@ -43,6 +43,27 @@
       </div>
     </div>
 
+    <!-- Chart Section -->
+    <div class="col-span-12">
+      <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+        <!-- Card Header -->
+        <div class="px-6 py-5">
+          <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">
+            Grafik Pembaruan KIR Per Bulan (Tahun {{ date('Y') }})
+          </h3>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-4 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+          <div class="space-y-6">
+            <div class="custom-scrollbar max-w-full overflow-x-auto">
+              <div id="chartKir" class="min-w-[1000px]" style="min-height: 195px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Alert KIR Records -->
     <div class="col-span-12">
       <div class="rounded-xl border border-red-200 bg-white shadow-sm dark:border-red-900/30 dark:bg-white/[0.03]">
@@ -158,3 +179,97 @@
     </div>
   </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const chartElement = document.querySelector('#chartKir');
+        if (!chartElement) return;
+
+        const chartOneOptions = {
+            series: [{
+                name: "Pembaruan KIR",
+                data: @js($chartData),
+            }],
+            colors: ["#465fff"],
+            chart: {
+                fontFamily: "Outfit, sans-serif",
+                type: "bar",
+                height: 180,
+                toolbar: {
+                    show: false,
+                },
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: "39%",
+                    borderRadius: 5,
+                    borderRadiusApplication: "end",
+                },
+            },
+            dataLabels: {
+                enabled: false,
+            },
+            stroke: {
+                show: true,
+                width: 4,
+                colors: ["transparent"],
+            },
+            xaxis: {
+                categories: [
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                ],
+                axisBorder: {
+                    show: false,
+                },
+                axisTicks: {
+                    show: false,
+                },
+            },
+            legend: {
+                show: true,
+                position: "top",
+                horizontalAlign: "left",
+                fontFamily: "Outfit",
+                markers: {
+                    radius: 99,
+                },
+            },
+            yaxis: {
+                title: false,
+                labels: {
+                    formatter: function (val) {
+                        return Math.round(val);
+                    }
+                }
+            },
+            grid: {
+                yaxis: {
+                    lines: {
+                        show: true,
+                    },
+                },
+            },
+            fill: {
+                opacity: 1,
+            },
+            tooltip: {
+                x: {
+                    show: true,
+                },
+                y: {
+                    formatter: function (val) {
+                        return val + " Kendaraan";
+                    },
+                },
+            },
+        };
+
+        const chart = new ApexCharts(chartElement, chartOneOptions);
+        chart.render();
+    });
+</script>
+@endpush
+

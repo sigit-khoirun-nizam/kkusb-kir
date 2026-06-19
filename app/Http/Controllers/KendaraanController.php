@@ -47,7 +47,7 @@ class KendaraanController extends Controller
                   ->orWhere('jenis', 'like', "%{$search}%");
         }
 
-        $kendaraans = $query->latest()->paginate(10);
+        $kendaraans = $query->with('documents')->latest()->paginate(10)->withQueryString();
         return view('pages.kendaraan.index', [
             'title' => 'Master Data Kendaraan',
             'kendaraans' => $kendaraans,
@@ -63,6 +63,17 @@ class KendaraanController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('biaya')) {
+            $request->merge([
+                'biaya' => str_replace('.', '', $request->biaya)
+            ]);
+        }
+        if ($request->has('jasa')) {
+            $request->merge([
+                'jasa' => str_replace('.', '', $request->jasa)
+            ]);
+        }
+
         $validated = $request->validate([
             'nomor_pintu' => 'required|string|max:50',
             'nopol' => 'required|string|max:50|unique:kendaraan,nopol',
@@ -102,6 +113,17 @@ class KendaraanController extends Controller
 
     public function update(Request $request, Kendaraan $kendaraan)
     {
+        if ($request->has('biaya')) {
+            $request->merge([
+                'biaya' => str_replace('.', '', $request->biaya)
+            ]);
+        }
+        if ($request->has('jasa')) {
+            $request->merge([
+                'jasa' => str_replace('.', '', $request->jasa)
+            ]);
+        }
+
         $validated = $request->validate([
             'nomor_pintu' => 'required|string|max:50',
             'nopol' => 'required|string|max:50|unique:kendaraan,nopol,' . $kendaraan->id,

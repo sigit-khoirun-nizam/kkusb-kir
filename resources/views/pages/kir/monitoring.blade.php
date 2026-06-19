@@ -101,11 +101,35 @@
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <div class="flex items-center gap-2">
-                    <a href="{{ route('kendaraan.show', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-blue-500/10 p-2 text-blue-500 hover:bg-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400" title="Detail">
+                  <div class="flex items-center gap-1.5">
+                    <a href="{{ route('kendaraan.show', $kendaraan) }}" 
+                      class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20" 
+                      title="Lihat Detail Kendaraan">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
                       Detail
                     </a>
-                    <a href="{{ route('kir.proses-form', $kendaraan) }}" class="inline-flex items-center justify-center rounded-lg bg-green-500/10 p-2 text-green-500 hover:bg-green-500/20 dark:bg-green-500/20 dark:text-green-400" title="Proses KIR">
+                    
+                    @if($kendaraan->documents->isNotEmpty())
+                      @php $latestDoc = $kendaraan->documents->sortByDesc('created_at')->first(); @endphp
+                      <a href="{{ Storage::url($latestDoc->path) }}" target="_blank" 
+                        class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20" 
+                        title="Buka Scan Dokumen PDF">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        PDF
+                      </a>
+                    @endif
+                    
+                    <a href="{{ route('kir.proses-form', $kendaraan) }}" 
+                      class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-600 hover:bg-green-100 transition-colors dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20" 
+                      title="Proses Perpanjangan KIR">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"></path>
+                      </svg>
                       Proses KIR
                     </a>
                   </div>

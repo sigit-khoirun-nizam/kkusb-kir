@@ -38,6 +38,21 @@ class DashboardController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+        // Query to get number of KIR renewals per month for the current year
+        $currentYear = date('Y');
+        $monthlyRenewalsRaw = KirHistory::whereYear('tanggal_proses', $currentYear)->get();
+        
+        $monthlyRenewals = array_fill(1, 12, 0);
+        foreach ($monthlyRenewalsRaw as $history) {
+            if ($history->tanggal_proses) {
+                $month = (int)$history->tanggal_proses->format('m');
+                if ($month >= 1 && $month <= 12) {
+                    $monthlyRenewals[$month]++;
+                }
+            }
+        }
+        $chartData = array_values($monthlyRenewals);
+
         return view('pages.dashboard.kir', [
             'title' => 'KIR Dashboard',
             'totalVehicles' => $totalVehicles,
@@ -47,6 +62,7 @@ class DashboardController extends Controller
             'threeMonthsKIR' => $threeMonthsKIR,
             'totalCost' => number_format($totalCost, 0, ',', '.'),
             'activeAlerts' => $activeAlerts,
+            'chartData' => $chartData,
         ]);
     }
 }

@@ -33,7 +33,7 @@ class KirController extends Controller
             }
         }
 
-        $kendaraans = $query->latest()->paginate(10);
+        $kendaraans = $query->with('documents')->latest()->paginate(10)->withQueryString();
 
         return view('pages.kir.monitoring', [
             'title' => 'Monitoring KIR',
@@ -41,9 +41,20 @@ class KirController extends Controller
         ]);
     }
 
-    public function proses()
+    public function proses(Request $request)
     {
-        $kendaraans = Kendaraan::orderBy('nomor_pintu', 'asc')->paginate(9);
+        $query = Kendaraan::query();
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nopol', 'like', "%{$search}%")
+                  ->orWhere('nomor_pintu', 'like', "%{$search}%");
+            });
+        }
+
+        $kendaraans = $query->orderBy('nomor_pintu', 'asc')->paginate(9)->withQueryString();
+
         return view('pages.kir.proses', [
             'title' => 'Proses Pembaruan KIR',
             'kendaraans' => $kendaraans,
@@ -52,14 +63,44 @@ class KirController extends Controller
 
     public function showProsesForm(Kendaraan $kendaraan)
     {
+        $additionalFeeTypes = \App\Models\AdditionalFeeType::active()->orderBy('name', 'asc')->get();
+
         return view('pages.kir.proses-form', [
             'title' => 'Form Proses KIR - ' . $kendaraan->nopol,
             'kendaraan' => $kendaraan,
+            'additionalFeeTypes' => $additionalFeeTypes,
         ]);
     }
 
     public function prosesStore(Request $request, Kendaraan $kendaraan)
     {
+        if ($request->has('biaya')) {
+            $request->merge([
+                'biaya' => str_replace('.', '', $request->biaya)
+            ]);
+        }
+        if ($request->has('jasa')) {
+            $request->merge([
+                'jasa' => str_replace('.', '', $request->jasa)
+            ]);
+        }
+        if ($request->has('additional_fees') && is_array($request->additional_fees)) {
+            $cleanedFees = [];
+            foreach ($request->additional_fees as $key => $item) {
+                $typeId = $item['type_id'] ?? null;
+                $amount = $item['amount'] ?? null;
+                if ($typeId) {
+                    $cleanedFees[] = [
+                        'type_id' => $typeId,
+                        'amount' => ($amount !== null && $amount !== '') ? str_replace('.', '', $amount) : '0',
+                    ];
+                }
+            }
+            $request->merge([
+                'additional_fees' => $cleanedFees
+            ]);
+        }
+
         $validated = $request->validate([
             'tanggal_proses' => 'required|date',
             'exp_kir_baru' => 'required|date|after:tanggal_proses',
@@ -68,9 +109,25 @@ class KirController extends Controller
             'no_pr' => 'nullable|string|max:100',
             'no_spk' => 'nullable|string|max:100',
             'dokumen' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:10240',
+            'additional_fees' => 'nullable|array',
+            'additional_fees.*.type_id' => 'required|exists:additional_fee_types,id',
+            'additional_fees.*.amount' => 'required|numeric|min:0',
         ]);
 
-        $total = $validated['biaya'] + $validated['jasa'];
+        $additionalFeesTotal = 0;
+        $additionalFeesData = [];
+        if (!empty($validated['additional_fees'])) {
+            foreach ($validated['additional_fees'] as $item) {
+                $id = $item['type_id'];
+                $amount = (float) $item['amount'];
+                if ($amount > 0) {
+                    $additionalFeesTotal += $amount;
+                    $additionalFeesData[$id] = ($additionalFeesData[$id] ?? 0) + $amount;
+                }
+            }
+        }
+
+        $total = $validated['biaya'] + $validated['jasa'] + $additionalFeesTotal;
 
         // Save History Record
         $history = KirHistory::create([
@@ -85,6 +142,15 @@ class KirController extends Controller
             'tanggal_proses' => $validated['tanggal_proses'],
         ]);
 
+        // Save Additional Fees
+        foreach ($additionalFeesData as $id => $amount) {
+            \App\Models\KirHistoryAdditionalFee::create([
+                'kir_history_id' => $history->id,
+                'additional_fee_type_id' => $id,
+                'amount' => $amount,
+            ]);
+        }
+
         // Handle file upload if exists
         if ($request->hasFile('dokumen')) {
             $file = $request->file('dokumen');
@@ -92,6 +158,7 @@ class KirController extends Controller
             
             KirDocument::create([
                 'kendaraan_id' => $kendaraan->id,
+                'kir_history_id' => $history->id,
                 'nama_file' => $file->getClientOriginalName(),
                 'path' => $path,
             ]);
@@ -113,13 +180,13 @@ class KirController extends Controller
 
     public function history(Request $request)
     {
-        $query = KirHistory::with('kendaraan');
+        $query = KirHistory::with(['kendaraan.documents', 'document', 'additionalFees.feeType']);
 
         if ($request->has('kendaraan_id') && $request->kendaraan_id) {
             $query->where('kendaraan_id', $request->kendaraan_id);
         }
 
-        $histories = $query->latest()->paginate(15);
+        $histories = $query->latest()->paginate(10)->withQueryString();
         $kendaraans = Kendaraan::orderBy('nomor_pintu', 'asc')->get();
 
         return view('pages.kir.history', [
@@ -127,6 +194,45 @@ class KirController extends Controller
             'histories' => $histories,
             'kendaraans' => $kendaraans,
         ]);
+    }
+
+    public function printHistory(KirHistory $history)
+    {
+        $history->load(['kendaraan', 'additionalFees.feeType']);
+        
+        // Reset TCPDF instance to ensure a clean slate
+        \Elibyy\TCPDF\Facades\TCPDF::reset();
+        
+        // Set Document Information
+        \Elibyy\TCPDF\Facades\TCPDF::SetCreator('KKUSB-KIR');
+        \Elibyy\TCPDF\Facades\TCPDF::SetAuthor('KKUSB');
+        \Elibyy\TCPDF\Facades\TCPDF::SetTitle('Bukti Pembaruan KIR');
+        \Elibyy\TCPDF\Facades\TCPDF::SetSubject('Bukti Pembaruan KIR');
+        
+        // Remove Default Header/Footer
+        \Elibyy\TCPDF\Facades\TCPDF::setPrintHeader(false);
+        \Elibyy\TCPDF\Facades\TCPDF::setPrintFooter(false);
+        
+        // Set margins (15mm top/bottom, 15mm left/right)
+        \Elibyy\TCPDF\Facades\TCPDF::SetMargins(15, 15, 15);
+        
+        // Enable Auto Page Break (with 10mm margin from bottom)
+        \Elibyy\TCPDF\Facades\TCPDF::SetAutoPageBreak(true, 10);
+        
+        // Add page
+        \Elibyy\TCPDF\Facades\TCPDF::AddPage('P', 'A4');
+        
+        // Render HTML view
+        $html = view('pages.kir.print-history-pdf', compact('history'))->render();
+        
+        // Output HTML to PDF
+        \Elibyy\TCPDF\Facades\TCPDF::writeHTML($html, true, false, true, false, '');
+        
+        // Output PDF to browser directly
+        $pdfContent = \Elibyy\TCPDF\Facades\TCPDF::Output('kir_receipt_' . $history->id . '.pdf', 'S');
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="kir_receipt_' . $history->id . '.pdf"');
     }
 
     public function importForm()

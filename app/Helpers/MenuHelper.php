@@ -22,6 +22,11 @@ class MenuHelper
                 'icon' => 'user-profile',
                 'name' => 'Kendaraan',
                 'path' => '/kendaraan',
+            ],
+            [
+                'icon' => 'tables',
+                'name' => 'Biaya Tambahan',
+                'path' => '/biaya-tambahan',
             ]
         ];
     }

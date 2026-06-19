@@ -102,7 +102,20 @@
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Biaya Resmi
             </label>
-            <input type="number" name="biaya" value="{{ old('biaya', 0) }}" min="0"
+            <input type="text" name="biaya" 
+              x-data="{ 
+                val: '{{ old('biaya', 0) }}',
+                format(value) {
+                  if (!value) return '';
+                  let clean = value.toString().replace(/\D/g, '');
+                  if (clean === '') return '';
+                  clean = parseInt(clean, 10).toString();
+                  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+              }"
+              x-init="val = format(val)"
+              x-model="val"
+              @input="val = format($event.target.value)"
               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
             @error('biaya') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
@@ -112,7 +125,20 @@
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Jasa Pengurusan
             </label>
-            <input type="number" name="jasa" value="{{ old('jasa', 0) }}" min="0"
+            <input type="text" name="jasa" 
+              x-data="{ 
+                val: '{{ old('jasa', 0) }}',
+                format(value) {
+                  if (!value) return '';
+                  let clean = value.toString().replace(/\D/g, '');
+                  if (clean === '') return '';
+                  clean = parseInt(clean, 10).toString();
+                  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+              }"
+              x-init="val = format(val)"
+              x-model="val"
+              @input="val = format($event.target.value)"
               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
             @error('jasa') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>

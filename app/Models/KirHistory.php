@@ -38,6 +38,16 @@ class KirHistory extends Model
         return $this->belongsTo(Kendaraan::class, 'kendaraan_id');
     }
 
+    public function document()
+    {
+        return $this->hasOne(KirDocument::class, 'kir_history_id');
+    }
+
+    public function additionalFees()
+    {
+        return $this->hasMany(KirHistoryAdditionalFee::class, 'kir_history_id');
+    }
+
     public function getFormattedBiayaAttribute(): string
     {
         return number_format($this->biaya, 0, ',', '.');

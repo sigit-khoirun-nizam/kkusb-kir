@@ -102,7 +102,21 @@
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Biaya Resmi <span class="text-red-500">*</span>
             </label>
-            <input type="number" name="biaya" value="{{ old('biaya', 0) }}" min="0" required
+            <input type="text" name="biaya" 
+              x-data="{ 
+                val: '{{ old('biaya', 0) }}',
+                format(value) {
+                  if (!value) return '';
+                  let clean = value.toString().replace(/\D/g, '');
+                  if (clean === '') return '';
+                  clean = parseInt(clean, 10).toString();
+                  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+              }"
+              x-init="val = format(val)"
+              x-model="val"
+              @input="val = format($event.target.value)"
+              required
               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
             @error('biaya') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
@@ -112,10 +126,110 @@
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Jasa Pengurusan <span class="text-red-500">*</span>
             </label>
-            <input type="number" name="jasa" value="{{ old('jasa', 0) }}" min="0" required
+            <input type="text" name="jasa" 
+              x-data="{ 
+                val: '{{ old('jasa', 0) }}',
+                format(value) {
+                  if (!value) return '';
+                  let clean = value.toString().replace(/\D/g, '');
+                  if (clean === '') return '';
+                  clean = parseInt(clean, 10).toString();
+                  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+              }"
+              x-init="val = format(val)"
+              x-model="val"
+              @input="val = format($event.target.value)"
+              required
               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
             @error('jasa') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
+
+          @if($additionalFeeTypes->isNotEmpty())
+            <div class="sm:col-span-2 border-t border-gray-200 pt-4 dark:border-gray-800"
+                 x-data="{
+                   rows: [],
+                   feeTypes: @js($additionalFeeTypes),
+                   addRow() {
+                     this.rows.push({ type_id: '', amount: '' });
+                   },
+                   removeRow(index) {
+                     this.rows.splice(index, 1);
+                   },
+                   format(value) {
+                     if (!value) return '';
+                     let clean = value.toString().replace(/\D/g, '');
+                     if (clean === '') return '';
+                     clean = parseInt(clean, 10).toString();
+                     return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                   }
+                 }">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-md font-semibold text-gray-800 dark:text-white">Biaya Tambahan (Opsional)</h3>
+                  <p class="text-xs text-gray-400">Silakan tambahkan biaya tambahan jika ada.</p>
+                </div>
+                <button type="button" @click="addRow()"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-500 bg-brand-500/10 px-3.5 py-2 text-xs font-semibold text-brand-600 hover:bg-brand-500 hover:text-white transition-all dark:text-brand-400 dark:hover:bg-brand-500/20">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 4.16667V15.8333M4.16667 10H15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Tambah Biaya
+                </button>
+              </div>
+
+              <!-- List of rows -->
+              <div class="space-y-3">
+                <template x-for="(row, index) in rows" :key="index">
+                  <div class="flex items-end gap-3 bg-gray-50/50 dark:bg-gray-900/30 p-3 rounded-xl border border-gray-200 dark:border-gray-800">
+                    <!-- Category Dropdown -->
+                    <div class="flex-1">
+                      <label class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-400">Kategori Biaya</label>
+                      <div class="relative">
+                        <select :name="'additional_fees[' + index + '][type_id]'" x-model="row.type_id" required
+                          class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-3 py-2 pr-10 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+                          <option value="" class="text-gray-400">Pilih Kategori</option>
+                          <template x-for="type in feeTypes" :key="type.id">
+                            <option :value="type.id" x-text="type.name" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"></option>
+                          </template>
+                        </select>
+                        <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Amount Input -->
+                    <div class="w-48">
+                      <label class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-400">Jumlah Biaya</label>
+                      <input type="text" :name="'additional_fees[' + index + '][amount]'" x-model="row.amount"
+                        @input="row.amount = format($event.target.value)"
+                        required placeholder="0"
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+                    </div>
+
+                    <!-- Delete button -->
+                    <div>
+                      <button type="button" @click="removeRow(index)"
+                        class="inline-flex items-center justify-center rounded-lg bg-red-500/10 p-2.5 text-red-500 hover:bg-red-500/20 transition-all dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30"
+                        title="Hapus Biaya">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" fill="currentColor"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+                
+                <!-- Empty state when no rows -->
+                <div x-show="rows.length === 0" class="text-center py-6 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+                  <span class="text-sm text-gray-400 dark:text-gray-500">Belum ada biaya tambahan yang ditambahkan.</span>
+                </div>
+              </div>
+            </div>
+          @endif
 
           <!-- No PR -->
           <div>
