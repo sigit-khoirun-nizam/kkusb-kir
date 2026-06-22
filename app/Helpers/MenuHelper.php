@@ -62,7 +62,7 @@ class MenuHelper
         return [
             [
                 'icon' => 'tables',
-                'name' => 'Export Excel',
+                'name' => 'Export Laporan',
                 'path' => '/report/export',
             ],
             [
